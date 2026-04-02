@@ -82,7 +82,7 @@ plot_df = all_cpi_df.copy()
 print('test:', plot_df['date'].max())
 if chart_type == "Slope (3 month % change)":
     # slope = month-over-month change in cpi_pct (percentage points per month)
-    plot_df['slope_3m'] = (plot_df['cpi_pct'] - plot_df['cpi_pct'].shift(3)) / plot_df['cpi_pct']
+    plot_df['slope_3m'] = (plot_df['cpi_pct'] - plot_df['cpi_pct'].shift(3)) / plot_df['cpi_pct'].shift(3)
     y_col = 'slope_3m'
     y_label = '3-month running slope (fraction)'
 elif chart_type == "CPI":
