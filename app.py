@@ -69,7 +69,7 @@ st.markdown(
 )
 
 # Chart type selector: CPI % change or slope (monthly change)
-chart_type = st.sidebar.selectbox("Chart Type", ["CPI % Change", "CPI", 'Slope (3 month % change)'])
+chart_type = st.sidebar.selectbox("Chart Type", ["CPI % Change", "CPI"])
 
 # Conversion controls placed below chart type in the sidebar — use Start/End dates from Filters
 st.sidebar.markdown("---")
