@@ -21,7 +21,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Updating cpi data
-# cpi.update()
+cpi.update()
 
 # Internal
 from config import _item_list
@@ -64,18 +64,18 @@ def _fetch_item_data(start_date, end_date, item: str):
         # Get one month's data
         try:
             cpi_this_month_value = cpi.get(this_date, items=item)
+
+            # Create a dataframe for this month's data
+            cpi_this_month = pd.DataFrame({
+                "date": [this_date],
+                "cpi_value": [cpi_this_month_value]
+            })
+
+            #Combine the data together
+            cpi_df = pd.concat([cpi_df, cpi_this_month], axis = 0)
         except Exception as e:
-            cpi_this_month = None
+            logger.info(f"Data not available for {this_date.strftime('%Y-%m-%d')}. Skipping. Error: {e}")
 
-        # Create a dataframe for this month's data
-        cpi_this_month = pd.DataFrame({
-            "date": [this_date],
-            "cpi_value": [cpi_this_month_value]
-        })
-
-        #Combine the data together
-        cpi_df = pd.concat([cpi_df, cpi_this_month], axis = 0)
-    
     return (cpi_df)
 
 
@@ -95,6 +95,7 @@ def _calculations(cpi_df):
     cpi_df['cpi_pct'] = (cpi_df['cpi_relative_value'] - 1) * 100
 
     return(cpi_df)
+
 
 ############################
 ### Get CPI Range
