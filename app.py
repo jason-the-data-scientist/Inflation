@@ -48,7 +48,7 @@ st.sidebar.header("Filters")
 start_date = st.sidebar.date_input("Start Date", value=date(2020, 1, 1))
 end_date = st.sidebar.date_input("End Date", value=date.today().replace(day=1) - relativedelta(months=1))
 
-# --- Item Choises ---
+# --- Item Choices ---
 item_choice = st.sidebar.selectbox("Item", _item_list(), index=2)
 logger.info('Itemd:', item_choice)
 
@@ -135,14 +135,18 @@ st.plotly_chart(fig, use_container_width=True)
 # Conversion calculator header
 st.header("Conversion calculator")
 
-start_row = all_cpi_df[all_cpi_df['date'] <= pd.to_datetime(start_date)]
-end_row = all_cpi_df[all_cpi_df['date'] <= pd.to_datetime(end_date)]
+
+# Drop rows ith missing cpi_value
+conversion_df = all_cpi_df.dropna(subset=['cpi_value']).copy()
+
+start_row = conversion_df[conversion_df['date'] <= pd.to_datetime(start_date)]
+end_row = conversion_df[conversion_df['date'] <= pd.to_datetime(end_date)]
 
 if start_row.empty or end_row.empty:
     st.error("CPI data not available for the selected Start/End dates.")
 else:
-    start_row_sorted = start_row.sort_values('date').dropna(subset=['cpi_value'])
-    end_row_sorted = end_row.sort_values('date').dropna(subset=['cpi_value'])
+    start_row_sorted = start_row.sort_values('date')
+    end_row_sorted = end_row.sort_values('date')
     
     start_cpi = start_row_sorted.iloc[-1]['cpi_value']
     start_cpi_date = start_row_sorted.iloc[-1]['date'].date()
@@ -150,9 +154,9 @@ else:
     end_cpi = end_row_sorted.iloc[-1]['cpi_value']
     end_cpi_date = end_row_sorted.iloc[-1]['date'].date()
 
-    if direction.startswith("End date"):
+    if direction == "Start date → End Date":
         converted = conv_amount * (end_cpi / start_cpi)
-        st.write(f"{conv_amount:,.2f} USD on {start_cpi_date.strftime('%B %d, %Y')} is equivalent to **{converted:,.2f} USD** on {end_cpi_date.strftime('%B %d, %Y')}.")
+        st.write(f"\${conv_amount:,.2f} USD of **{item_choice}** on {start_cpi_date.strftime('%B %d, %Y')} is equivalent to **\${converted:,.2f} USD** on {end_cpi_date.strftime('%B %d, %Y')}.")
     else:
         converted = conv_amount * (start_cpi / end_cpi)
-        st.write(f"{conv_amount:,.2f} USD of {item_choice} on {end_cpi_date.strftime('%B %d, %Y')} would buy **{converted:,.2f} USD** on {start_cpi_date.strftime('%B %d, %Y')}.")
+        st.write(f"\${conv_amount:,.2f} USD of **{item_choice}** on {end_cpi_date.strftime('%B %d, %Y')} would buy **\${converted:,.2f} USD** on {start_cpi_date.strftime('%B %d, %Y')}.")
