@@ -4,8 +4,15 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import datetime
 from datetime import date
 from dateutil.relativedelta import relativedelta
+try:    
+    import cpi
+except:
+    import subprocess
+    subprocess.check_call(["python", "-m", "pip", "install", "cpi"])
+    import cpi
 
 # Ignore warnings
 import warnings
@@ -20,11 +27,60 @@ logger = logging.getLogger(__name__)
 import pull_data
 from config import _item_list
 
+# Cache the execution state in the server's memory
+@st.cache_resource
+def get_execution_state():
+    # Store both the month string and a datetime object for the day count
+    return {
+        "last_run_month": "",
+        "last_run_date": None
+    }
+
+def run_monthly_code():
+    st.write("Checking for updates and running cpi.update()...")
+    try:
+        cpi.update()
+        st.success("CPI database updated successfully!")
+    except Exception as e:
+        st.error(f"Failed to update CPI database: {e}")
+    return True
+
+def handle_monthly_update():
+    """Checks the date and executes the monthly update if conditions are met."""
+    # Get current date details
+    today = datetime.date.today()
+    current_month_str = today.strftime("%Y-%m") 
+
+    # Condition 1: Check if today is the 15th
+    is_15th = (today.day == 15)
+
+    # Retrieve the persistent dictionary from memory
+    state = get_execution_state()
+    already_run_this_month = (state["last_run_month"] == current_month_str)
+
+    # Condition 2: Check if it has been more than 30 days since the last run
+    more_than_30_days = False
+    if state["last_run_date"] is not None:
+        days_since_last_run = (today - state["last_run_date"]).days
+        if days_since_last_run > 30:
+            more_than_30_days = True
+
+    # Execute if it's a fresh 15th OR if the 30-day safety window expired
+    if (is_15th and not already_run_this_month) or more_than_30_days:
+        run_monthly_code()
+        
+        # Update both tracking metrics in memory
+        state["last_run_month"] = current_month_str
+        state["last_run_date"] = today
+
 
 ############################
 ### Load in the Data
 ############################
 def load_data(start, end, item='All items'):
+
+    # Call the function in your main Streamlit script app flow
+    handle_monthly_update()
 
     logger.info(f"Loading data: start={start}, end={end}, item={item}")
 
@@ -69,7 +125,7 @@ st.markdown(
 )
 
 # Chart type selector: CPI % change or slope (monthly change)
-chart_type = st.sidebar.selectbox("Chart Type", ["CPI % Change", "CPI", 'Slope (3 month % change)'])
+chart_type = st.sidebar.selectbox("Chart Type", ["CPI % Change", "CPI"])
 
 # Conversion controls placed below chart type in the sidebar — use Start/End dates from Filters
 st.sidebar.markdown("---")
