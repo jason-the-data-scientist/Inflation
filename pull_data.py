@@ -20,8 +20,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Updating cpi data
-cpi.update()
+# # Updating cpi data
+# cpi.update()
 
 # Internal
 from config import _item_list
