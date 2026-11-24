@@ -239,19 +239,3 @@ else:
     else:
         converted = conv_amount * (start_cpi / end_cpi)
         st.write(f"\${conv_amount:,.2f} USD of **{item_choice}** on {end_cpi_date.strftime('%B %d, %Y')} would buy **\${converted:,.2f} USD** on {start_cpi_date.strftime('%B %d, %Y')}.")
-
-# # --- Change summary ---
-# summary_df = all_cpi_df.dropna(subset=['cpi_value']).copy() if 'all_cpi_df' in locals() else pd.DataFrame()
-
-# # Calculate and display the selected item's CPI change since the selected start date
-# if not all_cpi_df.empty:
-#     start_cpi_value = all_cpi_df.loc[all_cpi_df['date'] == start_date, 'cpi_value']
-#     end_cpi_value = all_cpi_df.loc[all_cpi_df['date'] == end_date, 'cpi_value']
-
-#     if not start_cpi_value.empty and not end_cpi_value.empty:
-#         cpi_change = ((end_cpi_value.values[0] - start_cpi_value.values[0]) / start_cpi_value.values[0]) * 100
-#         st.markdown(f"### Costs for {item_choice} have increased **{cpi_change:.2f}%** from {start_date} to {end_date}")
-#     else:
-#         st.warning("CPI values not available for the selected start or end date.")
-# else:
-#     st.warning("No CPI data available for the selected item and date range.")
