@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 # # Updating cpi data
 # cpi.update()
 
+
 # Internal
 from config import _item_list
 
