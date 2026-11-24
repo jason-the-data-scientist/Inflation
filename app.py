@@ -23,6 +23,18 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Update cpi data every 24 hours to ensure the latest data is available
+@st.cache_data(ttl=86400)  # 86,400 seconds = 24 hours
+def update_cpi_daily():
+  try:
+    cpi.update()
+    return True
+  except Exception as e:
+    st.warning(f"Could not update CPI data: {e}")
+    return False
+
+update_cpi_daily()
+
 # Internal files
 import pull_data
 from config import _item_list
@@ -106,13 +118,23 @@ end_date = st.sidebar.date_input("End Date", value=date.today().replace(day=1) -
 
 # --- Item Choices ---
 item_choice = st.sidebar.selectbox("Item", _item_list(), index=2)
-logger.info('Itemd:', item_choice)
+logger.info(f'Item selected: {item_choice}')
 
 
 # Data load (include selected item)
 all_cpi_df = load_data(start = start_date, 
                        end = end_date, 
                        item = item_choice)
+
+change_df = all_cpi_df.dropna(subset=['cpi_value']).sort_values('date')
+if not change_df.empty:
+    start_cpi = float(change_df.iloc[0]['cpi_value'])
+    latest_cpi = float(change_df.iloc[-1]['cpi_value'])
+    percent_change = ((latest_cpi / start_cpi) - 1) * 100
+    st.markdown(
+        f"**{item_choice}** has increased **{percent_change:.2f}%** since "
+        f"**{change_df.iloc[0]['date'].strftime('%B %d, %Y')}**."
+    )
 
 # --- Main Dashboard ---
 # show latest year in header for clarity
@@ -148,6 +170,7 @@ else:
     y_col = 'cpi_pct'
     y_label = 'CPI Percentage Change (%)'
 
+print(f"Plot max date: {plot_df['date'].max()}")
 # Create Plotly chart with axis labels
 fig = px.line(plot_df, x='date', y=y_col,
               labels={y_col: y_label, 'date': 'Date'},
@@ -181,7 +204,7 @@ else:
 
 # Add a top margin to the layout for extra space, increase default font size, and set chart height
 fig.update_layout(hovermode='x unified', margin=dict(t=50), font=dict(size=12), height=520)
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig, width='stretch')
 
 # --- Cost Calculator ---
 # (Conversion controls moved to the sidebar)
@@ -189,7 +212,7 @@ st.plotly_chart(fig, use_container_width=True)
 # Use Start Date and End Date from the Filters for conversion
 
 # Conversion calculator header
-st.header("Conversion calculator")
+st.header("Conversion Calculator")
 
 
 # Drop rows ith missing cpi_value
@@ -216,3 +239,19 @@ else:
     else:
         converted = conv_amount * (start_cpi / end_cpi)
         st.write(f"\${conv_amount:,.2f} USD of **{item_choice}** on {end_cpi_date.strftime('%B %d, %Y')} would buy **\${converted:,.2f} USD** on {start_cpi_date.strftime('%B %d, %Y')}.")
+
+# # --- Change summary ---
+# summary_df = all_cpi_df.dropna(subset=['cpi_value']).copy() if 'all_cpi_df' in locals() else pd.DataFrame()
+
+# # Calculate and display the selected item's CPI change since the selected start date
+# if not all_cpi_df.empty:
+#     start_cpi_value = all_cpi_df.loc[all_cpi_df['date'] == start_date, 'cpi_value']
+#     end_cpi_value = all_cpi_df.loc[all_cpi_df['date'] == end_date, 'cpi_value']
+
+#     if not start_cpi_value.empty and not end_cpi_value.empty:
+#         cpi_change = ((end_cpi_value.values[0] - start_cpi_value.values[0]) / start_cpi_value.values[0]) * 100
+#         st.markdown(f"### Costs for {item_choice} have increased **{cpi_change:.2f}%** from {start_date} to {end_date}")
+#     else:
+#         st.warning("CPI values not available for the selected start or end date.")
+# else:
+#     st.warning("No CPI data available for the selected item and date range.")
