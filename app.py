@@ -142,7 +142,7 @@ latest_year = all_cpi_df['date'].max().year if not all_cpi_df.empty else None
 
 # Center the main chart header
 st.markdown(
-    f"<h3 style='text-align:center; margin-bottom: 0.5rem;'> {item_choice}: CPI Percentage Change Over Time</h3>",
+    f"<h3 style='text-align:center; margin-bottom: 0.5rem;'> {item_choice}: Inflation % Change Over Time</h3>",
     unsafe_allow_html=True,
 )
 
