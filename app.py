@@ -99,14 +99,14 @@ def load_data(start, end, item='All items'):
     # Pull down data
     all_cpi_df = pull_data.pull_cpi_data(start, end, item)
 
-    # normalize date column to pandas datetime to avoid Timestamp vs date comparison issues
+    # Normalize date column to pandas datetime to avoid Timestamp vs date comparison issues
     all_cpi_df['date'] = pd.to_datetime(all_cpi_df['date'])
 
     return (all_cpi_df)
 
 
 ############################
-### Ctreamlit Setup
+### Streamlit Setup
 ############################
 st.set_page_config(page_title="Inflation Dashboard", layout="wide")
 st.title("Consumer Price Index (CPI) Dashboard")
