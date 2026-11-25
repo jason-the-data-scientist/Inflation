@@ -132,7 +132,7 @@ if not change_df.empty:
     latest_cpi = float(change_df.iloc[-1]['cpi_value'])
     percent_change = ((latest_cpi / start_cpi) - 1) * 100
     st.markdown(
-        f"**{item_choice}** has increased **{percent_change:.2f}%** since "
+        f"The cost of **{item_choice}** has increased **{percent_change:.2f}%** since "
         f"**{change_df.iloc[0]['date'].strftime('%B %d, %Y')}**."
     )
 
